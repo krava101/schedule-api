@@ -7,9 +7,9 @@
     **POST /api/auth/register**  
     Content-Type: application/json  
     Request Body:{  
-    "name": "example",  
-    "email": "example@gmail.com",  
-    "password": "example"  
+     "name": "example",  
+     "email": "example@gmail.com",  
+     "password": "example"  
     }
 
     **Success response**  
@@ -28,9 +28,7 @@
 
     **POST /api/auth/verify**  
     Content-Type: application/json  
-    Request Body: {  
-    "code": "example"  
-    }
+    Request Body: { "code": "example" }
 
     **Success response**  
     Status: 200 OK  
@@ -71,18 +69,18 @@
     **POST /api/auth/login**  
     Content-Type: application/json  
     Request Body:{  
-    "email": "example@gmail.com",  
-    "password": "example"  
+     "email": "example@gmail.com",  
+     "password": "example"  
     }
 
     **Success response**  
     Status: 200 OK  
     Response Body: {  
-    "token": "exampleTOKEN",  
-    "user": {  
-    "id": "exampleID",  
-    "name": "example",  
-    "email": "example@gmail.com",  
+     "token": "exampleTOKEN",  
+     "user": {  
+     "id": "exampleID",  
+     "name": "example",  
+     "email": "example@gmail.com",  
     }}
 
     **Validation error**  
