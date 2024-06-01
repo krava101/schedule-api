@@ -1,60 +1,116 @@
-# schedule-api
-
-## API
+# Schedule API
 
 - ## Authentication
 
   - ### Registration
 
-    POST /api/auth/register
-    req.body:
-    {
-    name,
-    email,
-    password
+    **POST /api/auth/register**
+    Content-Type: application/json
+    Request Body:{
+    "name": "example",
+    "email": "example@gmail.com",
+    "password": "example"
     }
 
-    response: { "message": "We sent a mail for verification on ${email}" }
+    _Success response_
+    Status: 201 Created
+    Response Body: { "message": "We sent a mail for verification on ${email}" }
+
+    _Validation error_
+    Status: 400 Bad Request
+    Response Body: { "message": (Validation error)}
+
+    _Registration conflict error_
+    Status: 409 Conflict
+    Response Body: { "message": "User already registrered"}
 
   - ### Verification user by email
 
-    POST /api/auth/verify
-    req.body:
-    {
-    code > Verify CODE from email
+    **POST /api/auth/verify**
+    Content-Type: application/json
+    Request Body: {
+    "code": "example"
     }
 
-    response: { "message": "Verification successful!" }
+    _Success response_
+    Status: 200 OK
+    Response Body: { "message": "Verification successful!" }
+
+    _Validation error_
+    Status: 400 Bad Request
+    Response Body: { "message": (Validation error)}
+
+    _Verification user Not Found_
+    Status: 404 Not Found
+    Response Body: { "message": "User not found!" }
 
   - ### Resend code for verification
 
-    POST /api/auth/resend < Resend verify code
-    req.body:
-    {
-    email
+    **POST /api/auth/resend**
+    Content-Type: application/json
+    Request Body:{
+    "email":"example@gmail.com"
     }
 
-    response: { "message": "We resend a mail for verification on ${email}" }
+    _Success response_
+    Status: 200 OK
+    Response Body: { "message": "We resend a mail for verification on ${email}" }
+
+    _Validation error_
+    Status: 400 Bad Request
+    Response Body: { "message": (Validation error)}
+
+    _Verification user Not Found_
+    Status: 404 Not Found
+    Response Body: { "message": "User not found!" }
+
+    _Verified user error_
+    Status: 400 Bad Request
+    Response Body: { "message": "Verification has already been passed!" }
 
   - ### Login
 
-    POST /api/auth/login
-    req.body:
-    {
-    email,
-    password
+    **POST /api/auth/login**
+    Content-Type: application/json
+    Request Body:{
+    "email": "example@gmail.com",
+    "password": "example"
     }
 
-    response:
-    {
-    "token": TOKEN > Authorization Bearer Token,
+    _Success response_
+    Status: 200 OK
+    Response Body: {
+    "token": "exampleTOKEN",
     "user": {
-    "id",
-    "name",
-    "email",
+    "id": "exampleID",
+    "name": "example",
+    "email": "example@gmail.com",
+    }}
+
+    _Validation error_
+    Status: 400 Bad Request
+    Response Body: { "message": (Validation error)}
+
+    _Login auth error_
+    Status: 401 Unauthorized
+    Response Body: {
+    "message": "Email or password is wrong!"
     }
+
+    _Not verified_
+    Status: 403 Forbidden
+    Response Body: {
+    "message": "Account is not verified!"
     }
 
   - ### Logout
-    POST api/auth/logout
-    Headers Authorization: Bearer TOKEN
+
+    **POST api/auth/logout**
+    Headers Authorization: "Bearer {{TOKEN}}"
+
+    _Success response_
+    Status: 204 No Content
+
+    _Invalid token error_
+    Status: 401 Unauthorized
+    Response Body: { "message": "Invalid token!" }

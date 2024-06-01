@@ -1,7 +1,6 @@
 import User from '../models/users.js';
 import bcrypt from 'bcrypt';
 import { userRegisterSchema, userLoginSchema, userVerifyCodeSchema, userEmailSchema } from '../schemas/users.js';
-import crypto from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import mail from '../mail.js';
 
@@ -101,7 +100,7 @@ async function resendCode(req, res, next) {
       return res.status(404).send({ message: "User not found!" });
     }
     if (user.verify) {
-      return res.status(400).send({ message: "Verification has already been passed" });
+      return res.status(400).send({ message: "Verification has already been passed!" });
     }
 
     const verifyToken = Math.floor(Math.random() * 900000) + 100000;
