@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -29,7 +29,47 @@ const userSchema = new mongoose.Schema({
   verifyToken: {
     type: String,
     default: null
-  }
+  },
+  invites: [
+    {
+      projectId: {
+        type: Schema.Types.ObjectId,
+        ref: 'project',
+      },
+      projectName: {
+        type: String,
+        required: [true, 'Project name is required'],
+      },
+      accepted: {
+        type: Boolean,
+        default: false,
+      }
+    }
+  ],
+  ownProjects: [
+    {
+      projectId: {
+        type: Schema.Types.ObjectId,
+        ref: 'project',
+      },
+      projectName: {
+        type: String,
+        required: [true, 'Project name is required'],
+      },
+    }
+  ],
+  projects: [
+    {
+      projectId: {
+        type: Schema.Types.ObjectId,
+        ref: 'project',
+      },
+      projectName: {
+        type: String,
+        required: [true, 'Project name is required'],
+      },
+    }
+  ],
 },
 {
 versionKey: false,

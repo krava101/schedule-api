@@ -62,18 +62,6 @@ async function login(req, res, next){
   }
 }
 
-async function current(req, res, next){
-  try {
-    const user = await User.findById(req.user._id);
-    if (user === null) {
-      return res.status(404).send({ message: "User not found!" });
-    }
-    res.status(200).send({ id: user._id, name: user.name, email: user.email });
-  } catch (err) {
-    next(err);
-  }
-}
-
 async function logout(req, res, next){
   try {
     await User.findByIdAndUpdate(req.user.id, { token: null });
@@ -133,4 +121,4 @@ async function resendCode(req, res, next) {
   }
 }
 
-export default { register, login, current, logout, verify, resendCode };
+export default { register, login, logout, verify, resendCode };
