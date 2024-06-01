@@ -12,15 +12,15 @@
     "password": "example"
     }
 
-    _Success response_
+    **Success response**
     Status: 201 Created
     Response Body: { "message": "We sent a mail for verification on ${email}" }
 
-    _Validation error_
+    **Validation error**
     Status: 400 Bad Request
     Response Body: { "message": (Validation error)}
 
-    _Registration conflict error_
+    **Registration conflict error**
     Status: 409 Conflict
     Response Body: { "message": "User already registrered"}
 
@@ -32,15 +32,15 @@
     "code": "example"
     }
 
-    _Success response_
+    **Success response**
     Status: 200 OK
     Response Body: { "message": "Verification successful!" }
 
-    _Validation error_
+    **Validation error**
     Status: 400 Bad Request
     Response Body: { "message": (Validation error)}
 
-    _Verification user Not Found_
+    **Verification user Not Found**
     Status: 404 Not Found
     Response Body: { "message": "User not found!" }
 
@@ -52,19 +52,19 @@
     "email":"example@gmail.com"
     }
 
-    _Success response_
+    **Success response**
     Status: 200 OK
     Response Body: { "message": "We resend a mail for verification on ${email}" }
 
-    _Validation error_
+    **Validation error**
     Status: 400 Bad Request
     Response Body: { "message": (Validation error)}
 
-    _Verification user Not Found_
+    **Verification user Not Found**
     Status: 404 Not Found
     Response Body: { "message": "User not found!" }
 
-    _Verified user error_
+    **Verified user error**
     Status: 400 Bad Request
     Response Body: { "message": "Verification has already been passed!" }
 
@@ -77,7 +77,7 @@
     "password": "example"
     }
 
-    _Success response_
+    **Success response**
     Status: 200 OK
     Response Body: {
     "token": "exampleTOKEN",
@@ -87,17 +87,17 @@
     "email": "example@gmail.com",
     }}
 
-    _Validation error_
+    **Validation error**
     Status: 400 Bad Request
     Response Body: { "message": (Validation error)}
 
-    _Login auth error_
+    **Login auth error**
     Status: 401 Unauthorized
     Response Body: {
     "message": "Email or password is wrong!"
     }
 
-    _Not verified_
+    **Not verified**
     Status: 403 Forbidden
     Response Body: {
     "message": "Account is not verified!"
@@ -108,9 +108,9 @@
     **POST api/auth/logout**
     Headers Authorization: "Bearer {{TOKEN}}"
 
-    _Success response_
+    **Success response**
     Status: 204 No Content
 
-    _Invalid token error_
+    **Invalid token error**
     Status: 401 Unauthorized
     Response Body: { "message": "Invalid token!" }
