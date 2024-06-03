@@ -1,6 +1,8 @@
 import Project from '../models/projects.js';
 import User from '../models/users.js';
-import { idProjectSchema, inviteToProjSchema, newProjectSchema, oustFromProjSchema, roleProjectSchema } from '../schemas/projects.js';
+import jwt from 'jsonwebtoken';
+import { idProjectSchema, kickFromProjSchema, newProjectSchema, roleProjectSchema } from '../schemas/projects.js';
+import { userEmailSchema } from '../schemas/users.js';
 
 async function create(req, res, next) {
   const projectValid = newProjectSchema.validate(req.body);
@@ -25,23 +27,49 @@ async function create(req, res, next) {
   }
 }
 
-async function invite(req, res, next) {
-  const inviteValid = inviteToProjSchema.validate(req.body);
-  const { projectId, email } = req.body;
-  if (inviteValid.error) {
-    return res.status(400).send({message: inviteValid.error.details[0].message });
+async function join(req, res, next) {
+  const projectIdValid = idProjectSchema.validate(req.body);
+  const { projectId } = req.body;
+  const user = req.user;
+  if (projectIdValid.error) {
+    return res.status(400).send({message: projectIdValid.error.details[0].message });
   }
   try {
     const project = await Project.findById(projectId);
     if (project === null) {
       return res.status(404).send({ message: "Project not found!" });
     }
-
-    const isEmployee = project.employees.find(e => e.id.toString() === req.user._id.toString());
-    if (typeof isEmployee === "undefined") {
-      return res.status(403).send({ message: "User does not have access!" });
+    const employee = project.employees.find(e => e.id.toString() === user._id.toString());
+    if (typeof employee === "undefined") {
+      return res.status(404).send({ message: "User does not have access!" });
     }
-    if (isEmployee.role === "employee" || isEmployee.role === "view") {
+    const token = jwt.sign({ id: user._id, email: user.email, projectId: project._id }, process.env.JWT_SECRET);
+    await User.findByIdAndUpdate(user._id, { token });
+    return res.status(200).send({
+      token,
+      project: {
+        id: project._id,
+        name: project.name,
+        owner: project.owner,
+        employees: project.employees,
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function invite(req, res, next) {
+  const emailValid = userEmailSchema.validate(req.body);
+  const { email } = req.body;
+  const project = req.project;
+  const projectId = project._id;
+  if (emailValid.error) {
+    return res.status(400).send({message: emailValid.error.details[0].message });
+  }
+  try {
+    const employee = project.employees.find(e => e.id.toString() === req.user._id.toString());
+    if (employee.role === "employee" || employee.role === "view") {
       return res.status(403).send({ message: "User does not have access!" });
     }
 
@@ -55,7 +83,7 @@ async function invite(req, res, next) {
       return res.status(409).send({ message: "User is already joined!" });
     }
 
-    const invite = user.invites.find(e => e.projectId.toString() === projectId);
+    const invite = user.invites.find(e => e.projectId.toString() === projectId.toString());
     if (typeof invite !== "undefined") {
       return res.status(400).send({ message: "The invite has already been sent!" });
     }
@@ -75,75 +103,55 @@ async function invite(req, res, next) {
   }
 }
 
-async function employees(req, res, next) {
-  const projectIdValid = idProjectSchema.validate(req.body);
-  const { projectId } = req.body;
-  if (projectIdValid.error) {
-    return res.status(400).send({message: projectIdValid.error.details[0].message });
-  }
-  try {
-    const project = await Project.findById(projectId);
-    if (project === null) {
-      return res.status(404).send({ message: "Project not found!" });
-    }
-    return res.status(200).send({ employees: project.employees });
-  } catch (err) {
-    next(err);
-  }
-}
-
 async function current(req, res, next) {
-  const projectIdValid = idProjectSchema.validate(req.body);
-  const { projectId } = req.body;
-  if (projectIdValid.error) {
-    return res.status(400).send({message: projectIdValid.error.details[0].message });
-  }
+  const project = req.project;
+  return res.status(200).send({
+    id: project._id,
+    name: project.name,
+    owner: project.owner,
+    employees: project.employees,
+  });
+}
+
+async function employees(req, res, next) {
+  const projectId = req.project._id;
+  const user = req.user;
+  const role = req.userRole;
+  const project = req.project;
   try {
-    const project = await Project.findById(projectId);
-    if (project === null) {
-      return res.status(404).send({ message: "Project not found!" });
+    if (role === "creator" || role === "admin") {
+      return res.status(200).send({ employees: project.employees });
     }
-    return res.status(200).send({
-      id: project._id,
-      name: project.name,
-      owner: project.owner,
-      employees: project.employees,
-    });
+    const employee = project.employees.find(e => e.id.toString() === user._id.toString());
+    return res.status(200).send({ employees: [ employee ] });
   } catch (err) {
     next(err);
   }
 }
 
-async function oust(req, res, next) {
-  const userValid = oustFromProjSchema.validate(req.body);
-  const { projectId, userId } = req.body;
+async function kick(req, res, next) {
+  const userValid = kickFromProjSchema.validate(req.body);
+  const { id } = req.body;
+  const project = req.project;
+  const userRole = req.userRole;
   if (userValid.error) {
     return res.status(400).send({message: userValid.error.details[0].message });
   }
   try {
-    const project = await Project.findById(projectId);
-    if (project === null) {
-      return res.status(404).send({ message: "Project not found!" });
-    }
-    const user = project.employees.find(e => e.id.toString() === userId);
-    if (typeof user === "undefined") {
+    const employee = project.employees.find(e => e.id.toString() === id);
+    if (typeof employee === "undefined") {
       return res.status(404).send({ message: "User not found!" });
     }
-
-    const isEmployee = project.employees.find(e => e.id.toString() === req.user._id.toString());
-    if (user.role === "creator") {
+    if (employee.role === "creator") {
       return res.status(403).send({ message: "User does not have access!" });
     }
-    if (typeof isEmployee === "undefined") {
-      return res.status(403).send({ message: "User does not have access!" });
-    }
-    if (isEmployee.role === "employee" || isEmployee.role === "view") {
+    if (userRole === "employee" || userRole === "view") {
       return res.status(403).send({ message: "User does not have access!" });
     }
 
+    const employees = project.employees.filter(e => e.id.toString() !== employee.id.toString());
+    await Project.findByIdAndUpdate(project._id, { employees });
 
-    const employees = project.employees.filter(e => e.id.toString() !== userId);
-    await Project.findByIdAndUpdate(project._id, {employees})
     return res.status(200).send({ employees });
   } catch (err) {
     next(err);
@@ -152,39 +160,32 @@ async function oust(req, res, next) {
 
 async function role(req, res, next) {
   const roleValid = roleProjectSchema.validate(req.body);
-  const { projectId, userId, role } = req.body;
+  const { id, role } = req.body;
+  const userRole = req.userRole;
+  const project = req.project;
   if (roleValid.error) {
     return res.status(400).send({message: roleValid.error.details[0].message });
   }
   try {
-    const project = await Project.findById(projectId);
-    if (project === null) {
-      return res.status(404).send({ message: "Project not found!" });
-    }
-    const user = project.employees.find(e => e.id.toString() === userId);
-    if (typeof user === "undefined") {
+    const employee = project.employees.find(e => e.id.toString() === id);
+    if (typeof employee === "undefined") {
       return res.status(404).send({ message: "User not found!" });
     }
-
-    const isEmployee = project.employees.find(e => e.id.toString() === req.user._id.toString());
-    if (user.role === "creator") {
+    if (employee.role === "creator") {
       return res.status(403).send({ message: "User does not have access!" });
     }
-    if (typeof isEmployee === "undefined") {
-      return res.status(403).send({ message: "User does not have access!" });
-    }
-    if (isEmployee.role === "employee" || isEmployee.role === "view") {
+    if (userRole === "employee" || userRole === "view") {
       return res.status(403).send({ message: "User does not have access!" });
     }
 
-    const employees = project.employees.filter(e => e.id.toString() === userId ? e.role = role : e);
-    const newRoleUser = project.employees.find(e => e.id.toString() === userId);
-    await Project.findByIdAndUpdate(projectId, { employees });
-
-    return res.status(200).send(newRoleUser);
+    const employees = project.employees.filter(e => e.id.toString() === employee.id.toString() ? e.role = role : e);
+    await Project.findByIdAndUpdate(project._id, { employees });
+    
+    const updEmployee = project.employees.find(e => e.id.toString() === employee.id.toString());
+    return res.status(200).send(updEmployee);
   } catch (err) {
     next(err);
   }
 }
 
-export default { create, invite, employees, current, oust, role };
+export default { create, join, invite, employees, current, kick, role };

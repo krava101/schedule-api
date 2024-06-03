@@ -5,6 +5,7 @@ const router = express.Router();
 const jsonParser = express.json();
 
 router.get('/current', usersController.current);
-router.post('/invite', jsonParser, usersController.acceptInvite)
+router.post('/invite', jsonParser, usersController.acceptInvite);
+router.patch('/rename', jsonParser, usersController.rename);
 
 export default router;
