@@ -18,3 +18,7 @@ export const userVerifyCodeSchema = Joi.object({
 export const userEmailSchema = Joi.object({
   email: Joi.string().email().required()
 })
+
+export const userRenameSchema = Joi.object({
+  rename: Joi.string().required()
+})

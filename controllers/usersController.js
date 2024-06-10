@@ -1,5 +1,6 @@
 import User from '../models/users.js';
 import Project from '../models/projects.js';
+import { userRenameSchema } from '../schemas/users.js';
 
 async function current(req, res, next) {
   const user = req.user;
@@ -33,8 +34,15 @@ async function acceptInvite(req, res, next) {
 
 async function rename(req, res, next) {
   const user = req.user;
+  const renameValid = userRenameSchema.validate(req.body);
+  const { rename } = req.body;
+  if (renameValid.error) {
+    return res.status(400).send({message: renameValid.error.details[0].message });
+  }
   try {
-    
+    console.log(rename);
+    const renameUser = await User.findByIdAndUpdate(user._id, { name: rename }, {new: true});
+    res.status(200).send({ id: user._id, name: renameUser.name, email: user.email });
   } catch (err) {
     next(err);
   }
