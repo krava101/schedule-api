@@ -63,10 +63,19 @@ async function login(req, res, next){
 
 async function logout(req, res, next){
   try {
-    await User.findByIdAndUpdate(req.user.id, { token: null });
+    await User.findByIdAndUpdate(req.user._id, { token: null });
     return res.status(204).end();
   } catch (err) {
     next(err);
+  }
+}
+
+async function current(req, res, next) {
+  try {
+    const user = await User.findById(req.user._id);
+    return res.status(200).send({ id: user._id, name: user.name, email: user.email });
+  } catch (error) {
+    
   }
 }
 
@@ -120,4 +129,4 @@ async function resendCode(req, res, next) {
   }
 }
 
-export default { register, login, logout, verify, resendCode };
+export default { register, login, logout, verify, resendCode, current };

@@ -10,5 +10,6 @@ router.post('/verify', jsonParser, authController.verify);
 router.post('/resend', jsonParser, authController.resendCode);
 router.post('/login', jsonParser, authController.login);
 router.post('/logout', authMiddleware, authController.logout);
+router.get('/current', authMiddleware, authController.current);
 
 export default router;
